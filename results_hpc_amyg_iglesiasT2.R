@@ -539,10 +539,10 @@ demos <- data %>%
                            InterSessions.days~"Time between sessions [days]"),
               missing = "no") 
 
-t.test(Age.ses.3~Group, data_wide.all,var.equal=T)
-t.test(InterSessions.days~Group, data_wide.all,var.equal=T)
-t.test(Total.Digits.WAIS.ses.3~Group, data_wide.all,var.equal=T)
-chisq.test(table(data_wide.all$Education,data_wide.all$Group))
+t.test(Age.ses.3~Group, data, var.equal=T)
+t.test(InterSessions.days~Group, data, var.equal=T)
+t.test(Total.Digits.WAIS.ses.3~Group, data,var.equal=T)
+chisq.test(table(data$Education, data$Group))
 
 
 demos <- data %>%
