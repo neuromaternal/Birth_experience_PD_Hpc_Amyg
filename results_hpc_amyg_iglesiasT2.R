@@ -1,6 +1,22 @@
 # Clear workspace and set working directory
 rm(list = ls())
-setwd("~/BEATA-MADRID/hippocampus_amygdala_peripartum")
+
+setwd("~/repos/Birth_experience_PD_Hpc_Amyg")
+
+# if packages are needed
+required_packages <- c("dplyr", "tidyr", "feather", "stringr", "reshape2", "ggplot2", "ggpubr", "cowplot", "ggcorrplot", "ppcor", "gtsummary", "writexl", "devtools")
+new_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
+if(length(new_packages)) {
+  install.packages(new_packages, dependencies = T)
+}
+if (!"fslmer" %in% rownames(installed.packages())) {
+  devtools::install_github("Deep-MI/fslmer", build_vignettes = TRUE)
+}
+
+# if you have any problems installing a package, you can try with the flag
+# 'dependencies  = TRUE' or using devtools package
+
+
 # Load required libraries
 library(dplyr)
 library(tidyr)
@@ -15,8 +31,6 @@ library(ggcorrplot)
 library(ppcor)
 library(gtsummary)
 library(writexl)
-
-
 
 
 ## Load data
@@ -88,26 +102,6 @@ write.table(table_1_and_S1 %>%
 rm(C, X)
 
 # 2. Complete Model: 
-# Volume ~ Group * Session + Age + ICV
-
-# Define inputs
-C = matrix(c(0,1,0,0,0,0,
-             0,1,0,0,0,1,
-             0,0,0,0,0,1),nrow=3,byrow=T)
-X <- model.matrix(~Group*ses+Age.ses.3+ICV, subunits_long %>% filter(subunits == subunit_names[1]))
-
-# Compute
-table_S2 <- lme_subunits_table(C, C_names, X, subunits_long, c(subunit_names, global_names), descriptives = FALSE)
-
-# Save results
-table_S2 <- table_S2 %>% select(everything(),  -Prg, -Post, -`Group*Session`, Prg, Post, `Group*Session`)
-write.table(table_S2 %>%
-              mutate(subunits = ifelse(statistic == "F-stat.", subunits, NA)),
-            "SMTable2.txt", quote = F, row.names = F,  na = "", sep=";")
-rm(C, X)
-
-
-# 3. Complete Model: 
 # Volume ~ Group * Session + Age + ICV +Total.PSQI + Total.PSS
 
 # Define inputs
@@ -117,11 +111,7 @@ C = matrix(c(0,1,0,0,0,0, 0, 0,
 X <- model.matrix(~Group*ses+Age.ses.3+ICV+PSQI+PSS, subunits_long %>% filter(subunits == subunit_names[1]))
 
 # Compute
-table_S3 <- lme_subunits_table(C, C_names, X, subunits_long, c(subunit_names, global_names), descriptives = FALSE)
-write.table(table_S3 %>%
-              mutate(subunits = ifelse(statistic == "F-stat.", subunits, NA)),
-            "SMTable_2.3.txt", quote = F, row.names = F,  na = "", sep=";")
-rm(C, X)
+table_S2 <- lme_subunits_table(C, C_names, X, subunits_long, c(subunit_names, global_names), descriptives = FALSE)
 
 # Save results
 table_S2 <- table_S2 %>% select(everything(),  -Prg, -Post, -`Group*Session`, Prg, Post, `Group*Session`)
@@ -259,7 +249,7 @@ data %>%
   count()
 
 
-# 3. Longitudinal changes in EDS
+# 2. Longitudinal changes in EDS
 EDS_long <- melt(data %>%
                    filter(Group == "mother") %>% 
                    select(ID, contains("Total.EDS.")) ,
@@ -449,10 +439,10 @@ colnames(r_M) <- str_replace(colnames(r_M), pattern = "_L", replacement = "")
 colnames(r_M) <- str_replace(colnames(r_M), pattern = "_R", replacement = "")
 colnames(p_M) <- colnames(r_M)
 
-r_M_hpc <- rbind(r_M[2,seq(1,length(hippo_subunit_names),by=2)],
-                 r_M[2,seq(2,length(hippo_subunit_names),by=2)])
-p_M_hpc <- rbind(p_M[2,seq(1,length(hippo_subunit_names),by=2)],
-                 p_M[2,seq(2,length(hippo_subunit_names),by=2)])
+r_M_hpc <- rbind(r_M[1, seq(1, length(hippo_subunit_names), by=2)],
+                 r_M[1, seq(2, length(hippo_subunit_names), by=2)])
+p_M_hpc <- rbind(p_M[1, seq(1, length(hippo_subunit_names), by=2)],
+                 p_M[1, seq(2, length(hippo_subunit_names), by=2)])
 rownames(r_M_hpc) <- c("lh","rh")
 rownames(p_M_hpc) <- rownames(r_M_hpc) 
 
@@ -466,8 +456,8 @@ corrplot_hpc <- ggcorrplot(t(r_M_hpc), p.mat = t(p_M_hpc),  insig = "blank") +
         legend.text = element_text(size=6.5)) +
   guides(fill=guide_legend(title='R', title.position = "top"))
 
-r_M_amg <- r_M[1, seq(length(hippo_subunit_names)+2,ncol(r_M), by=2)]
-p_M_amg <- p_M[1, seq(length(hippo_subunit_names)+2,ncol(r_M), by=2)]
+r_M_amg <- r_M[2, seq(length(hippo_subunit_names)+2,ncol(r_M), by=2)]
+p_M_amg <- p_M[2, seq(length(hippo_subunit_names)+2,ncol(r_M), by=2)]
 rownames(r_M_amg) <- c("rh")
 rownames(p_M_amg) <-rownames(r_M_amg) 
 
